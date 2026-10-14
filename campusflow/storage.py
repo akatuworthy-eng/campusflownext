@@ -120,6 +120,14 @@ def validate_tickets(tickets):
         ):
             raise ValueError(f"Ticket {ticket_id} has an invalid assignee")
 
+        if (
+            ticket["status"] == "in_progress"
+            and not ticket["assigned_to"]
+        ):
+            raise ValueError(
+                f"Ticket {ticket_id} is in progress without an assignee"
+            )
+
         validate_notes(ticket)
 
 
@@ -164,6 +172,11 @@ def save_tickets(tickets, path):
             temporary_file.write("\n")
             temporary_file.flush()
             os.fsync(temporary_file.fileno())
+        if file_path.exists():
+            import stat
+            existing_mode = stat.S_IMODE(file_path.stat().st_mode)
+            os.chmod(temporary_path, existing_mode)
+
         os.replace(temporary_path, file_path)
     except (OSError, TypeError, ValueError) as error:
         raise ValueError(f"Could not save ticket storage: {error}") from error
