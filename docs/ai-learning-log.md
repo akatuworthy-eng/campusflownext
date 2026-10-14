@@ -51,7 +51,11 @@ writing JSON. Normalize old tickets after validation.
 tests/test_storage_notes.py
 
 **Exact AI question:** TODO — record the actual prompt.
-**Unrelated experiment:** TODO — run and document.
+**Unrelated experiment:** Created a small book-lending function that checks available copies before decreasing the quantity.
+
+**Actual output:** `Rejected: Insufficient copies` and `Data unchanged: True`.
+
+**Verification:** Compared the book list with a deep copy after the rejected operation. They matched.
 **My explanation:** TODO — explain in your own words.
 
 ### Learning cycle 2: Atomic JSON saving
@@ -72,7 +76,11 @@ tests for failed writes and invalid existing notes.
 campusflow/notes.py, tests/test_atomic_storage.py
 
 **Exact AI question:** TODO — record the actual prompt.
-**Unrelated experiment:** TODO — run and document.
+**Unrelated experiment:** Used a temporary directory and `os.replace()` to replace a book-record file.
+
+**Actual output:** `Before replacement: Original records` and `After replacement: Updated records`.
+
+**Verification:** Read the destination file before and after replacement. Its contents changed as expected.
 **My explanation:** TODO — explain in your own words.
 
 ## Engineer B
