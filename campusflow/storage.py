@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import re
 
 from campusflow.tickets import calculate_priority
 from campusflow.workflow import VALID_STATUSES
@@ -19,6 +20,52 @@ _REQUIRED_FIELDS = {
     "status",
     "assigned_to",
 }
+
+
+def validate_notes(ticket):
+    """Validate a ticket's structured follow-up notes."""
+
+    notes = ticket.get("notes", [])
+
+    if not isinstance(notes, list):
+        raise ValueError("Ticket notes must be a list")
+
+    seen_ids = set()
+
+    for note in notes:
+        if not isinstance(note, dict):
+            raise ValueError("Each note must be an object")
+
+        if set(note) != {"note_id", "author", "message"}:
+            raise ValueError("Invalid note structure")
+
+        note_id = note["note_id"]
+
+        if not isinstance(note_id, str) or not re.fullmatch(
+            r"N[0-9]{3,}", note_id
+        ):
+            raise ValueError("Invalid note ID")
+
+        number = int(note_id[1:])
+
+        if number < 1 or note_id != f"N{number:03d}":
+            raise ValueError("Invalid note ID")
+
+        if note_id in seen_ids:
+            raise ValueError("Duplicate note ID")
+
+        seen_ids.add(note_id)
+
+        author = note["author"]
+        message = note["message"]
+
+        if not isinstance(author, str) or not author.strip():
+            raise ValueError("Invalid note author")
+
+        if not isinstance(message, str) or not 5 <= len(
+            message.strip()
+        ) <= 300:
+            raise ValueError("Invalid note message")
 
 
 def validate_tickets(tickets):
@@ -71,6 +118,8 @@ def validate_tickets(tickets):
         ):
             raise ValueError(f"Ticket {ticket_id} has an invalid assignee")
 
+        validate_notes(ticket)
+
 
 def load_tickets(path):
     """Load and validate tickets from *path*, or return an empty list if missing."""
@@ -87,18 +136,24 @@ def load_tickets(path):
         raise ValueError(f"Could not read ticket storage: {error}") from error
 
     validate_tickets(tickets)
+    for ticket in tickets:
+        ticket.setdefault("notes", [])
     return tickets
 
 
 def save_tickets(tickets, path):
     """Validate and save tickets as readable JSON, creating parent directories."""
     validate_tickets(tickets)
+    tickets_to_save = [
+        {**ticket, "notes": ticket.get("notes", [])}
+        for ticket in tickets
+    ]
     file_path = Path(path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         with file_path.open("w", encoding="utf-8") as file:
-            json.dump(tickets, file, indent=2)
+            json.dump(tickets_to_save, file, indent=2)
             file.write("\n")
     except OSError as error:
         raise ValueError(f"Could not save ticket storage: {error}") from error
