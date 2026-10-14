@@ -28,5 +28,52 @@
 - Decision (accepted / improved / rejected): **[say exactly what you concluded after testing]**
 - Related file: `campusflow/tickets.py`
 
+## Engineer A — CampusFlow Next Sprint
+
+### Learning cycle 1: Validate before saving
+
+**Concept gap:** Understanding why defining a
+validation function is not enough.
+
+**AI guidance:** Call validate_notes() from
+validate_tickets() before saving or loading data.
+
+**Observed failure:** Two storage tests failed and
+one raised KeyError before the correction.
+
+**Verification:** The complete suite subsequently
+passed 45 tests.
+
+**Decision:** Validate each ticket's notes before
+writing JSON. Normalize old tickets after validation.
+
+**Related files:** campusflow/storage.py,
+tests/test_storage_notes.py
+
+**Exact AI question:** TODO — record the actual prompt.
+**Unrelated experiment:** TODO — run and document.
+**My explanation:** TODO — explain in your own words.
+
+### Learning cycle 2: Atomic JSON saving
+
+**Concept gap:** Understanding why writing directly
+to the destination file may risk existing records.
+
+**AI guidance:** Write a temporary file and replace
+the destination only after writing succeeds.
+
+**Verification:** Four additional regression tests
+passed, increasing the test count from 45 to 49.
+
+**Decision:** Use atomic file replacement and retain
+tests for failed writes and invalid existing notes.
+
+**Related files:** campusflow/storage.py,
+campusflow/notes.py, tests/test_atomic_storage.py
+
+**Exact AI question:** TODO — record the actual prompt.
+**Unrelated experiment:** TODO — run and document.
+**My explanation:** TODO — explain in your own words.
+
 ## Engineer B
 Create three separate genuine entries following the same fields: problem, prior understanding, exact AI prompt, guidance, independent experiment, actual verification, decision, related commit/PR, and your own explanation.
