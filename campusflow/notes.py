@@ -4,6 +4,7 @@
 import re
 
 from campusflow.workflow import _find_ticket
+from campusflow.storage import validate_notes
 
 
 def add_note(tickets, ticket_id, author, message):
@@ -29,6 +30,8 @@ def add_note(tickets, ticket_id, author, message):
 
     if not isinstance(notes, list):
         raise ValueError("Notes must be a list")
+
+    validate_notes(ticket)
 
     seen_ids = set()
     highest_number = 0

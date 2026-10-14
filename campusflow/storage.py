@@ -1,6 +1,8 @@
 """JSON persistence helpers for CampusFlow tickets."""
 
 import json
+import os
+import tempfile
 from pathlib import Path
 import re
 
@@ -142,18 +144,29 @@ def load_tickets(path):
 
 
 def save_tickets(tickets, path):
-    """Validate and save tickets as readable JSON, creating parent directories."""
+    """Validate and atomically save tickets so failed writes preserve old data."""
     validate_tickets(tickets)
     tickets_to_save = [
         {**ticket, "notes": ticket.get("notes", [])}
         for ticket in tickets
     ]
     file_path = Path(path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
 
     try:
-        with file_path.open("w", encoding="utf-8") as file:
-            json.dump(tickets_to_save, file, indent=2)
-            file.write("\n")
-    except OSError as error:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=file_path.parent,
+            prefix=f".{file_path.name}.", suffix=".tmp", delete=False,
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            json.dump(tickets_to_save, temporary_file, indent=2)
+            temporary_file.write("\n")
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        os.replace(temporary_path, file_path)
+    except (OSError, TypeError, ValueError) as error:
         raise ValueError(f"Could not save ticket storage: {error}") from error
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)
