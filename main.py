@@ -3,6 +3,9 @@
 from pathlib import Path
 
 from campusflow.reports import generate_report
+from campusflow.notes_cli import prompt_add_note, prompt_view_notes
+from campusflow.quiz_cli import run_understanding_check
+from campusflow.search_cli import prompt_search_tickets
 from campusflow.storage import load_tickets, save_tickets
 from campusflow.tickets import create_ticket
 from campusflow.workflow import assign_ticket, get_work_queue, reopen_ticket, update_status
@@ -44,6 +47,13 @@ def display_report(report):
     print(f"Total tickets: {report['total']}")
     print("By status:", report["by_status"])
     print("By priority:", report["by_priority"])
+    print("By category:", report["by_category"])
+    print(f"Unresolved tickets: {report['unresolved']}")
+    print(f"Resolved tickets: {report['resolved']}")
+    print(
+        f"Resolution percentage: "
+        f"{report['resolution_percentage']:.2f}%"
+    )
 
 
 def run_cli(data_path=DATA_PATH):
@@ -60,6 +70,10 @@ def run_cli(data_path=DATA_PATH):
         print("1. Create ticket\n2. List tickets\n3. View ticket\n4. Assign ticket")
         print("5. Change status\n6. Show work queue\n7. Show reports")
         print("8. Save tickets\n9. Exit")
+        print("10. Search tickets")
+        print("11. Engineering understanding check")
+        print("12. Add follow-up note")
+        print("13. View follow-up notes")
         choice = input("Choose an option: ").strip()
 
         try:
@@ -93,8 +107,16 @@ def run_cli(data_path=DATA_PATH):
                 save_tickets(tickets, data_path)
                 print("Tickets saved. Goodbye.")
                 return 0
+            elif choice == "10":
+                prompt_search_tickets(tickets)
+            elif choice == "11":
+                run_understanding_check()
+            elif choice == "12":
+                prompt_add_note(tickets)
+            elif choice == "13":
+                prompt_view_notes(tickets)
             else:
-                print("Choose a number from 1 to 9.")
+                print("Choose a number from 1 to 13.")
         except (ValueError, TypeError) as error:
             print(f"Error: {error}")
 

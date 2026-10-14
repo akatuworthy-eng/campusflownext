@@ -41,3 +41,19 @@ generate_report(tickets: list) -> dict
 python3 -m unittest discover -s tests -v
 ```
 Run the platform-appropriate command before integration. On Windows this project uses `py -m unittest discover -s tests -v`. The AI-learning log is intentionally not expanded with unperformed experiments.
+
+## CampusFlow Next — Updated ownership and integration
+
+This section supersedes the earlier ownership allocation above.
+
+- Engineer A: Ticket creation, priority, structured notes,
+  storage validation, atomic persistence and related tests.
+- Engineer B: Combined search, reporting, quiz, search CLI,
+  Add/View Notes CLI integration and related tests.
+- Integration: Engineer B merged Engineer A's branch into
+  feat/22-search-and-insights for combined verification.
+- Verified local result: 78 automated tests passed.
+- Integration commit: b3ed31a.
+
+The CLI delegates note validation to Engineer A's add_note()
+business-layer function rather than duplicating that logic.
