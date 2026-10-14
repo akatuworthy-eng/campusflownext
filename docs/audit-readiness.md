@@ -35,11 +35,13 @@
 | Stage | Tests reported | Result |
 | --- | ---: | --- |
 | Original CampusFlow baseline | 37 | PASS |
-| Latest isolated Engineer A branch, independently run from Engineer B's review worktree | 52 | PASS |
+| Latest isolated Engineer A branch, independently run from Engineer B's review worktree | 52 | PASS (historical local) |
 | Combined branches before notes CLI integration | 74 | PASS |
-| Combined branch with notes CLI and four integration tests | 78 | PASS, zero failures |
+| Combined branch with notes CLI and four integration tests | 78 | PASS, zero failures (historical local) |
+| Updated Engineer A branch, GitHub Actions on Linux and Windows, Python 3.11 | 54 | PASS on both systems |
+| Updated Engineer B combined branch, GitHub Actions on Linux and Windows, Python 3.11 | 82 | PASS on both systems |
 
-**Most recent reported command:** `python3 -m unittest discover -s tests -q`. Engineer B's terminal showed `Ran 78 tests ... OK` after integration and before the final docs-only commits. The connected GitHub API returned **no check runs** on the reviewed PR heads. These are locally observed results, not a claim of passing remote CI.
+**Most recent reported command:** `python3 -m unittest discover -s tests -q`. Engineer B's terminal showed `Ran 78 tests ... OK` after integration and before the final docs-only commits. GitHub Actions now runs the regression suite on Linux and Windows for both feature branches. Successful workflow runs verified: [Engineer A tests](https://github.com/akatuworthy-eng/campusflownext/actions/runs/38637795572) (54 tests) and [Engineer B tests](https://github.com/akatuworthy-eng/campusflownext/actions/runs/38637811790) (82 tests). A later branch-reconciliation commit may require its own check result before merging. Earlier counts of 52 and 78 are historic local test results, not current suite totals.
 
 ### Engineer B independent experiments
 
@@ -69,7 +71,7 @@ Use a **temporary ticket JSON file** for the live demo to protect real records.
 - [ ] Genuine Engineer A review/approval of Engineer B's changes is recorded if required; both PRs currently being attributed to one account is an unresolved workflow obstacle.
 - [ ] Reviewer checks that all review comments are addressed. A possible workflow invariant requiring investigation: does a `resolved` ticket also need a nonblank assignee on load?
 - [ ] Confirm the mentor's minimum learning-evidence requirements, especially exact AI prompts that were not recorded.
-- [ ] Perform and record independent manual CLI verification if required.
+- [ ] Perform and record independent manual CLI verification if required. Automated CLI tests do not constitute a human manual run.
 - [ ] Merge PR #3 into `main` **after review**.
 - [ ] Retarget PR #4 to `main` after PR #3 merges, confirm it shows only Engineer B's changes, rerun tests, and merge **after review**.
 - [ ] Verify `main` contains the complete application and repeat tests from a clean checkout.
@@ -91,5 +93,7 @@ Use a **temporary ticket JSON file** for the live demo to protect real records.
 2. Retarget PR #4 from `feat/21-validation-and-notes` to `main`.
 3. Verify the PR #4 diff and test results, secure its required review, then merge it.
 4. Re-run the complete suite against updated `main` and record the result.
+
+**Implementation review notes:** Engineer A's unresolved-assignee storage rule now also rejects unassigned resolved records; Engineer B's search returns detached snapshots, reporting rejects invalid values, and README documents all 13 CLI actions. Both branches contain a GitHub Actions workflow.
 
 **Do not mark a review, check or merge as done unless GitHub and actual testing confirm it.**
