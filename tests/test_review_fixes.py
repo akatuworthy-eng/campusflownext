@@ -48,6 +48,28 @@ class ReviewFixTests(unittest.TestCase):
                 load_tickets(path)[0]["status"], "open"
             )
 
+    def test_unassigned_resolved_ticket_rejected(self):
+        tickets = []
+        create_ticket(
+            tickets, "Printer issue", "Hardware", "low", 1
+        )
+        tickets[0]["status"] = "resolved"
+
+        with self.assertRaisesRegex(
+            ValueError, "resolved without an assignee"
+        ):
+            validate_tickets(tickets)
+
+    def test_assigned_resolved_ticket_is_valid(self):
+        tickets = []
+        create_ticket(
+            tickets, "Printer issue", "Hardware", "low", 1
+        )
+        tickets[0]["assigned_to"] = "Support A"
+        tickets[0]["status"] = "resolved"
+
+        validate_tickets(tickets)
+
     @unittest.skipUnless(
         os.name == "posix", "POSIX file permissions required"
     )
