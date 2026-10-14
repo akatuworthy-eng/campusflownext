@@ -79,6 +79,19 @@ class TestTicketSearch(unittest.TestCase):
         )
         self.assertEqual(self.tickets, original)
 
+    def test_search_results_are_detached_from_ticket_records(self):
+        original = copy.deepcopy(self.tickets)
+
+        matches = search_tickets(self.tickets, title="wi-fi")
+        matches[0]["title"] = "Modified outside search"
+        matches[0]["notes"].append({
+            "note_id": "N001",
+            "author": "Review A",
+            "message": "This should not affect stored tickets",
+        })
+
+        self.assertEqual(self.tickets, original)
+
     def test_optional_priority_sorting(self):
         results = search_tickets(
             self.tickets, sort_by_priority=True
