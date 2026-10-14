@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from campusflow.reports import generate_report
+from campusflow.notes_cli import prompt_add_note, prompt_view_notes
 from campusflow.quiz_cli import run_understanding_check
 from campusflow.search_cli import prompt_search_tickets
 from campusflow.storage import load_tickets, save_tickets
@@ -71,6 +72,8 @@ def run_cli(data_path=DATA_PATH):
         print("8. Save tickets\n9. Exit")
         print("10. Search tickets")
         print("11. Engineering understanding check")
+        print("12. Add follow-up note")
+        print("13. View follow-up notes")
         choice = input("Choose an option: ").strip()
 
         try:
@@ -108,8 +111,12 @@ def run_cli(data_path=DATA_PATH):
                 prompt_search_tickets(tickets)
             elif choice == "11":
                 run_understanding_check()
+            elif choice == "12":
+                prompt_add_note(tickets)
+            elif choice == "13":
+                prompt_view_notes(tickets)
             else:
-                print("Choose a number from 1 to 11.")
+                print("Choose a number from 1 to 13.")
         except (ValueError, TypeError) as error:
             print(f"Error: {error}")
 
