@@ -121,11 +121,11 @@ def validate_tickets(tickets):
             raise ValueError(f"Ticket {ticket_id} has an invalid assignee")
 
         if (
-            ticket["status"] == "in_progress"
+            ticket["status"] in ("in_progress", "resolved")
             and not ticket["assigned_to"]
         ):
             raise ValueError(
-                f"Ticket {ticket_id} is in progress without an assignee"
+                f"Ticket {ticket_id} is {ticket['status']} without an assignee"
             )
 
         validate_notes(ticket)
