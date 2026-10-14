@@ -61,6 +61,27 @@ campusflow/notes.py, tests/test_atomic_storage.py
 **Verification:** Read the destination file before and after replacement. Its contents changed as expected.
 **My explanation:** I learned that atomic saving protects existing data when writing to a JSON file. Instead of writing directly to the original file, the program first writes the updated records to a temporary file. After the write succeeds, os.replace() replaces the original file. If writing fails before replacement, the original data remains unchanged. I also learned why preserving existing file permissions is important.
 
+
+### Learning cycle 3: Evaluate AI review feedback on atomic-save permissions
+
+**Concept gap:** Temporary-file replacement can change file permissions even when file content is saved correctly.
+
+**Prior understanding:** Not recorded before the review.
+
+**AI interaction:** An automated Codex reviewer on [PR #3](https://github.com/akatuworthy-eng/campusflownext/pull/3) warned that `NamedTemporaryFile` creates private files, which could replace a previously group-readable destination with mode `0600`. This was unsolicited review feedback; no exact user question prompted it.
+
+**Guidance considered:** When replacing an existing file, copy its POSIX mode bits to the temporary file before `os.replace()`.
+
+**Decision and critical evaluation:** Incorporated the existing-file permission fix, while retaining a private mode for newly created files. This addresses the review's specific regression rather than changing file permissions without a defined requirement.
+
+**Independent verification recorded in tests:** `tests/test_review_fixes.py::test_atomic_save_preserves_existing_permissions` creates an existing destination, changes its mode to `0640`, saves updated JSON and confirms the final mode remains `0640`. Engineer B also reported an isolated branch run with 52 tests passing after this fix.
+
+**Technical explanation:** Atomic replacement installs the temporary file itself at the destination path. Unless the temporary file receives the destination's prior mode, the save can unexpectedly change who is allowed to read it.
+
+**Personal explanation from Engineer A:** Not independently recorded; Engineer A must supply this in their own words if the assessment requires one.
+
+**Related commit/PR:** [d262d7f — review fixes](https://github.com/akatuworthy-eng/campusflownext/commit/d262d7fead5195e7fb4e3c89e20463cefe22cd63), [PR #3](https://github.com/akatuworthy-eng/campusflownext/pull/3).
+
 ## Engineer B — CampusFlow Next Sprint
 
 ### Learning cycle 1 — Combined search filters
