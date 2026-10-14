@@ -82,6 +82,22 @@ class TestEnhancedReports(unittest.TestCase):
         self.assertEqual(updated["unresolved"], 3)
         self.assertEqual(updated["resolution_percentage"], 0.0)
 
+    def test_invalid_report_values_are_rejected(self):
+        for field, bad_value in (
+            ("status", "archived"),
+            ("priority", "urgent"),
+            ("category", "Unknown"),
+            ("status", []),
+        ):
+            with self.subTest(field=field, bad_value=bad_value):
+                broken = [dict(ticket) for ticket in self.tickets]
+                broken[0][field] = bad_value
+                with self.assertRaises(ValueError):
+                    generate_report(broken)
+
+        with self.assertRaises(ValueError):
+            generate_report([None])
+
     def test_cli_displays_enhanced_report(self):
         report = generate_report(self.tickets)
         output = StringIO()
