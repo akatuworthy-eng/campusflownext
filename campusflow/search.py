@@ -1,5 +1,7 @@
 """Read-only search and filtering for CampusFlow tickets."""
 
+from copy import deepcopy
+
 CATEGORIES = ("network", "hardware", "software", "other")
 STATUSES = ("open", "in_progress", "resolved")
 PRIORITIES = ("critical", "high", "medium", "low")
@@ -64,7 +66,8 @@ def search_tickets(
         if priority and priority != ticket["priority"].casefold():
             continue
 
-        results.append(ticket)
+        # Return independent records so callers cannot mutate stored tickets.
+        results.append(deepcopy(ticket))
 
     if sort_by_priority:
         results.sort(
