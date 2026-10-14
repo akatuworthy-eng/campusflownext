@@ -40,15 +40,14 @@ The CampusFlow Next brief identifies:
 - Automated tests and peer review
 
 Actual original audit observations:
-TODO: Add the specific findings from our original audit.
+The available baseline evidence confirms that the original automated tests checked priority calculation, invalid workflow transitions, and duplicate ticket IDs. The separate original audit observations were not provided in this document, so no additional findings are claimed.
 
 ## Engineer A improvement evidence
 - Added structured follow-up notes.
 - Added note validation and ID continuity.
 - Preserved compatibility with older tickets.
 - Added atomic JSON saving and regression tests.
-- Latest local test run: 49 passed, 0 failed.
+- Latest Engineer A local test run: 52 passed, 0 failed (including three review-fix tests).
 
 ## Remaining baseline verification
-TODO: Record three manual CLI input/output checks
-if required by the mentor.
+The three scenarios recorded above were verified through automated tests, not independent manual CLI sessions. Manual CLI verification remains outstanding.
