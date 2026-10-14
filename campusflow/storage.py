@@ -1,7 +1,10 @@
 """JSON persistence helpers for CampusFlow tickets."""
 
 import json
+import os
+import tempfile
 from pathlib import Path
+import re
 
 from campusflow.tickets import calculate_priority
 from campusflow.workflow import VALID_STATUSES
@@ -19,6 +22,52 @@ _REQUIRED_FIELDS = {
     "status",
     "assigned_to",
 }
+
+
+def validate_notes(ticket):
+    """Validate a ticket's structured follow-up notes."""
+
+    notes = ticket.get("notes", [])
+
+    if not isinstance(notes, list):
+        raise ValueError("Ticket notes must be a list")
+
+    seen_ids = set()
+
+    for note in notes:
+        if not isinstance(note, dict):
+            raise ValueError("Each note must be an object")
+
+        if set(note) != {"note_id", "author", "message"}:
+            raise ValueError("Invalid note structure")
+
+        note_id = note["note_id"]
+
+        if not isinstance(note_id, str) or not re.fullmatch(
+            r"N[0-9]{3,}", note_id
+        ):
+            raise ValueError("Invalid note ID")
+
+        number = int(note_id[1:])
+
+        if number < 1 or note_id != f"N{number:03d}":
+            raise ValueError("Invalid note ID")
+
+        if note_id in seen_ids:
+            raise ValueError("Duplicate note ID")
+
+        seen_ids.add(note_id)
+
+        author = note["author"]
+        message = note["message"]
+
+        if not isinstance(author, str) or not author.strip():
+            raise ValueError("Invalid note author")
+
+        if not isinstance(message, str) or not 5 <= len(
+            message.strip()
+        ) <= 300:
+            raise ValueError("Invalid note message")
 
 
 def validate_tickets(tickets):
@@ -71,6 +120,16 @@ def validate_tickets(tickets):
         ):
             raise ValueError(f"Ticket {ticket_id} has an invalid assignee")
 
+        if (
+            ticket["status"] in ("in_progress", "resolved")
+            and not ticket["assigned_to"]
+        ):
+            raise ValueError(
+                f"Ticket {ticket_id} is {ticket['status']} without an assignee"
+            )
+
+        validate_notes(ticket)
+
 
 def load_tickets(path):
     """Load and validate tickets from *path*, or return an empty list if missing."""
@@ -87,18 +146,40 @@ def load_tickets(path):
         raise ValueError(f"Could not read ticket storage: {error}") from error
 
     validate_tickets(tickets)
+    for ticket in tickets:
+        ticket.setdefault("notes", [])
     return tickets
 
 
 def save_tickets(tickets, path):
-    """Validate and save tickets as readable JSON, creating parent directories."""
+    """Validate and atomically save tickets so failed writes preserve old data."""
     validate_tickets(tickets)
+    tickets_to_save = [
+        {**ticket, "notes": ticket.get("notes", [])}
+        for ticket in tickets
+    ]
     file_path = Path(path)
-    file_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = None
 
     try:
-        with file_path.open("w", encoding="utf-8") as file:
-            json.dump(tickets, file, indent=2)
-            file.write("\n")
-    except OSError as error:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=file_path.parent,
+            prefix=f".{file_path.name}.", suffix=".tmp", delete=False,
+        ) as temporary_file:
+            temporary_path = Path(temporary_file.name)
+            json.dump(tickets_to_save, temporary_file, indent=2)
+            temporary_file.write("\n")
+            temporary_file.flush()
+            os.fsync(temporary_file.fileno())
+        if file_path.exists():
+            import stat
+            existing_mode = stat.S_IMODE(file_path.stat().st_mode)
+            os.chmod(temporary_path, existing_mode)
+
+        os.replace(temporary_path, file_path)
+    except (OSError, TypeError, ValueError) as error:
         raise ValueError(f"Could not save ticket storage: {error}") from error
+    finally:
+        if temporary_path is not None:
+            temporary_path.unlink(missing_ok=True)

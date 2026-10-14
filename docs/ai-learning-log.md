@@ -2,31 +2,85 @@
 
 **IMPORTANT:** Complete each entry personally and truthfully. The items below are starting prompts, NOT claims that independent experiments or verification were completed. Each fellow needs at least three verified interactions, including one critically evaluated AI suggestion.
 
-## Engineer A — Interaction 1: Boolean conditions and priority rules
-- Problem: Understand why `and` and `or` produce different priority outcomes.
-- Initial understanding (in my words): **[fill in]**
-- Actual AI prompt: **[paste one of your actual questions or messages]**
-- Guidance learned: `and` needs both conditions; `or` needs either condition; `if/elif` uses the first matching branch.
-- My independent experiment and predicted output: **[run a small Python example and record exactly what you tried]**
-- Actual output and verification: **[paste actual terminal result / source]**
-- What I can explain now: **[fill in]**
-- Related code: `campusflow/tickets.py` — `calculate_priority`
+## Original-project learning templates
 
-## Engineer A — Interaction 2: Automated unittest discovery
-- Problem: Six new test functions had been defined at module level instead of as methods in `unittest.TestCase` classes.
-- AI guidance to evaluate: Re-indent the six test functions into their respective test classes so discovery includes them.
-- My independent experiment: **[pull updated branch; run `python3 -m unittest discover -s tests -v`; record test count/output]**
-- Verification: **[paste actual output]**
-- Decision: **[what you accepted or changed, and why]**
-- Related file: `tests/test_tickets.py`
+The earlier Engineer A entries were unfinished starter templates, not verified learning evidence. Their original content remains in Git history.
 
-## Engineer A — Interaction 3: Unique ticket ID validation (critical evaluation)
-- Problem: An earlier ID generator took the numeric portion of every ID without checking format or duplication.
-- AI guidance: Validate `T...` shape, positive numeric suffix, canonical padding and duplicates before calculating the next ID.
-- Independent experiment: **[show malformed-ID and duplicate-ID tests you personally ran]**
-- Actual result: **[fill in]**
-- Decision (accepted / improved / rejected): **[say exactly what you concluded after testing]**
-- Related file: `campusflow/tickets.py`
+## Engineer A — CampusFlow Next Sprint
+
+### Learning cycle 1: Validate before saving
+
+**Concept gap:** Understanding why defining a
+validation function is not enough.
+
+**AI guidance:** Call validate_notes() from
+validate_tickets() before saving or loading data.
+
+**Observed failure:** Two storage tests failed and
+one raised KeyError before the correction.
+
+**Verification:** The complete suite subsequently
+passed 45 tests.
+
+**Decision:** Validate each ticket's notes before
+writing JSON. Normalize old tickets after validation.
+
+**Related files:** campusflow/storage.py,
+tests/test_storage_notes.py
+
+**Exact AI question:** Not recorded verbatim
+**Unrelated experiment:** Created a small book-lending function that checks available copies before decreasing the quantity.
+
+**Actual output:** `Rejected: Insufficient copies` and `Data unchanged: True`.
+
+**Verification:** Compared the book list with a deep copy after the rejected operation. They matched.
+**My explanation:** I learned that validation-before-mutation means checking whether data is correct before making changes to it. In CampusFlow, I must check the ticket status, note author, message length, and note ID before adding a note. If any validation fails, the program raises an error without changing the original ticket. This helps prevent invalid data from being saved.
+
+### Learning cycle 2: Atomic JSON saving
+
+**Concept gap:** Understanding why writing directly
+to the destination file may risk existing records.
+
+**AI guidance:** Write a temporary file and replace
+the destination only after writing succeeds.
+
+**Verification:** Four additional regression tests
+passed, increasing the test count from 45 to 49.
+
+**Decision:** Use atomic file replacement and retain
+tests for failed writes and invalid existing notes.
+
+**Related files:** campusflow/storage.py,
+campusflow/notes.py, tests/test_atomic_storage.py
+
+**Exact AI question:** Not recorded verbatim
+**Unrelated experiment:** Used a temporary directory and `os.replace()` to replace a book-record file.
+
+**Actual output:** `Before replacement: Original records` and `After replacement: Updated records`.
+
+**Verification:** Read the destination file before and after replacement. Its contents changed as expected.
+**My explanation:** I learned that atomic saving protects existing data when writing to a JSON file. Instead of writing directly to the original file, the program first writes the updated records to a temporary file. After the write succeeds, os.replace() replaces the original file. If writing fails before replacement, the original data remains unchanged. I also learned why preserving existing file permissions is important.
+
+
+### Learning cycle 3: Evaluate AI review feedback on atomic-save permissions
+
+**Concept gap:** Temporary-file replacement can change file permissions even when file content is saved correctly.
+
+**Prior understanding:** Not recorded before the review.
+
+**AI interaction:** An automated Codex reviewer on [PR #3](https://github.com/akatuworthy-eng/campusflownext/pull/3) warned that `NamedTemporaryFile` creates private files, which could replace a previously group-readable destination with mode `0600`. This was unsolicited review feedback; no exact user question prompted it.
+
+**Guidance considered:** When replacing an existing file, copy its POSIX mode bits to the temporary file before `os.replace()`.
+
+**Decision and critical evaluation:** Incorporated the existing-file permission fix, while retaining a private mode for newly created files. This addresses the review's specific regression rather than changing file permissions without a defined requirement.
+
+**Independent verification recorded in tests:** `tests/test_review_fixes.py::test_atomic_save_preserves_existing_permissions` creates an existing destination, changes its mode to `0640`, saves updated JSON and confirms the final mode remains `0640`. Engineer B also reported an isolated branch run with 52 tests passing after this fix.
+
+**Technical explanation:** Atomic replacement installs the temporary file itself at the destination path. Unless the temporary file receives the destination's prior mode, the save can unexpectedly change who is allowed to read it.
+
+**Personal explanation from Engineer A:** Not independently recorded; Engineer A must supply this in their own words if the assessment requires one.
+
+**Related commit/PR:** [d262d7f — review fixes](https://github.com/akatuworthy-eng/campusflownext/commit/d262d7fead5195e7fb4e3c89e20463cefe22cd63), [PR #3](https://github.com/akatuworthy-eng/campusflownext/pull/3).
 
 ## Engineer B
 Create three separate genuine entries following the same fields: problem, prior understanding, exact AI prompt, guidance, independent experiment, actual verification, decision, related commit/PR, and your own explanation.
