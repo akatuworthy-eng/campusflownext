@@ -15,18 +15,23 @@ def generate_report(tickets):
     by_category = {category: 0 for category in CATEGORIES}
 
     for ticket in tickets:
+        if not isinstance(ticket, dict):
+            raise ValueError("Each report ticket must be a record")
+
         status = ticket.get("status")
         priority = ticket.get("priority")
         category = ticket.get("category")
 
-        if status in by_status:
-            by_status[status] += 1
+        if not isinstance(status, str) or status not in by_status:
+            raise ValueError("Ticket has an invalid status")
+        if not isinstance(priority, str) or priority not in by_priority:
+            raise ValueError("Ticket has an invalid priority")
+        if not isinstance(category, str) or category not in by_category:
+            raise ValueError("Ticket has an invalid category")
 
-        if priority in by_priority:
-            by_priority[priority] += 1
-
-        if category in by_category:
-            by_category[category] += 1
+        by_status[status] += 1
+        by_priority[priority] += 1
+        by_category[category] += 1
 
     total = len(tickets)
     resolved = by_status["resolved"]
