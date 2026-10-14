@@ -45,6 +45,13 @@ def display_report(report):
     print(f"Total tickets: {report['total']}")
     print("By status:", report["by_status"])
     print("By priority:", report["by_priority"])
+    print("By category:", report["by_category"])
+    print(f"Unresolved tickets: {report['unresolved']}")
+    print(f"Resolved tickets: {report['resolved']}")
+    print(
+        f"Resolution percentage: "
+        f"{report['resolution_percentage']:.2f}%"
+    )
 
 
 def run_cli(data_path=DATA_PATH):
